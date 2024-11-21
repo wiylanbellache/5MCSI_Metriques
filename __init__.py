@@ -16,13 +16,12 @@ def commits():
     url = "https://api.github.com/repos/OpenRSI/5MCSI_Metriques/commits"
     
     try:
-        # Récupération des données de l'API GitHub
         response = urlopen(url)
         commits_data = json.loads(response.read().decode('utf-8'))
     except Exception as e:
         return jsonify({'error': f'Erreur lors de la récupération des données : {e}'}), 500
     
-    # Extraction des minutes des dates des commits
+    # Extraire les minutes
     minutes = []
     for commit in commits_data:
         try:
@@ -31,39 +30,12 @@ def commits():
             minutes.append(date_object.minute)
         except KeyError:
             continue
-
-    # Compter le nombre de commits par minute
+    
+    # Compter les commits par minute
     minute_counts = Counter(minutes)
     sorted_minutes = sorted(minute_counts.items())
-    minutes_labels = [item[0] for item in sorted_minutes]
-    commit_counts = [item[1] for item in sorted_minutes]
+    return jsonify(sorted_minutes)
 
-    # Générer le graphique
-    plt.figure(figsize=(10, 6))
-    plt.bar(minutes_labels, commit_counts)
-    plt.title('Nombre de commits par minute')
-    plt.xlabel('Minute')
-    plt.ylabel('Nombre de commits')
-    plt.xticks(range(0, 60, 5))  # Intervalles de 5 minutes
-    plt.grid(axis='y')
-
-    # Convertir le graphique en image pour l'envoyer au client
-    img = io.BytesIO()
-    plt.savefig(img, format='png')
-    img.seek(0)
-    graph_url = base64.b64encode(img.getvalue()).decode('utf8')
-    plt.close()
-
-    # Retourner le graphique sous forme d'image HTML
-    return render_template_string("""
-    <html>
-        <head><title>Commits par minute</title></head>
-        <body>
-            <h1>Graphique : Nombre de commits par minute</h1>
-            <img src="data:image/png;base64,{{ graph_url }}" />
-        </body>
-    </html>
-    """, graph_url=graph_url)
 
 # Route pour la page d'accueil
 @app.route('/')
