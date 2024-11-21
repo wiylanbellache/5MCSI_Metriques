@@ -1,33 +1,112 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Commits par Minute</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        h1 {
-            text-align: center;
-        }
-        .graph-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        img {
-            max-width: 100%;
-            height: auto;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Commits Minute par Minute</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f9;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: #333;
+    }
+    canvas {
+      max-width: 800px; /* Augmentation de la largeur */
+      max-height: 500px;
+      margin: 20px auto;
+    }
+  </style>
 </head>
 <body>
-    <h1>Graphique : Nombre de commits par minute</h1>
-    <div class="graph-container">
-        <img src="data:image/png;base64,{{ graph_url }}" alt="Graphique des commits">
-    </div>
+  <h1>Graphique des Commits Minute par Minute</h1>
+  <canvas id="commitChart"></canvas>
+
+  <script>
+    const repoURL = "https://api.github.com/repos/Lucas94200/5MCSI_Metriques/commits";
+    const extractMinutesURL = "/extract-minutes"; // Route Flask
+
+    // Fonction pour récupérer les données de l'API GitHub
+    async function fetchCommits() {
+      try {
+        const response = await fetch(repoURL);
+        if (!response.ok) throw new Error(`Erreur : ${response.status}`);
+        const commits = await response.json();
+        
+        // Extraire les minutes depuis les dates des commits
+        const minutesData = await Promise.all(
+          commits.map(async (commit) => {
+            const date = commit.commit.author.date;
+            const res = await fetch(`${extractMinutesURL}/${date}`);
+            const { minutes } = await res.json();
+            return minutes;
+          })
+        );
+
+        // Regrouper les commits par minute
+        const commitsByMinute = minutesData.reduce((acc, minute) => {
+          acc[minute] = (acc[minute] || 0) + 1;
+          return acc;
+        }, {});
+
+        return commitsByMinute;
+      } catch (error) {
+        console.error("Erreur lors de la récupération des commits :", error);
+      }
+    }
+
+    // Fonction pour afficher le graphique
+    async function displayChart() {
+      const commitsByMinute = await fetchCommits();
+      
+      const labels = Array.from({ length: 60 }, (_, i) => i); // 0 à 59 minutes
+      const data = labels.map((minute) => commitsByMinute[minute] || 0);
+
+      const ctx = document.getElementById("commitChart").getContext("2d");
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "Nombre de commits par minute",
+            data: data,
+            backgroundColor: "rgba(0, 0, 139, 0.2)", /* Bleu foncé avec transparence */
+            borderColor: "rgba(0, 0, 139, 1)", /* Bleu foncé pur */
+            borderWidth: 1,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+            },
+          },
+          plugins: {
+            legend: {
+              labels: {
+                font: {
+                  size: 14, /* Taille du texte de la légende */
+                },
+              },
+            },
+          },
+        },
+      });
+
+      // Redimensionner le canvas
+      const canvas = document.getElementById("commitChart");
+      canvas.style.height = "400px"; /* Hauteur ajustée */
+      canvas.style.width = "800px"; /* Largeur ajustée */
+    }
+
+    // Appeler la fonction pour afficher le graphique
+    displayChart();
+  </script>
 </body>
 </html>
