@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import io
 import base64
 from collections import Counter
+from urllib.request import urlopen
+
                                                                                                                                        
 app = Flask(__name__)
 
@@ -18,11 +20,8 @@ def commits():
     url = "https://api.github.com/repos/OpenRSI/5MCSI_Metriques/commits"
     
     # Appel à l'API GitHub
-    response = requests.get(url)
-    if response.status_code != 200:
-        return jsonify({'error': 'Impossible de récupérer les données depuis GitHub'}), 500
-    
-    commits_data = response.json()
+    response = urlopen(url)
+    commits_data = json.loads(response.read())
     
     # Extraire les minutes des dates des commits
     minutes = []
@@ -66,6 +65,7 @@ def commits():
         </body>
     </html>
     """, graph_url=graph_url)
+  
 @app.route("/contact/")
 def contact():
     return render_template("contact.html")
