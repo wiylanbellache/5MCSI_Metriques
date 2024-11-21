@@ -4,8 +4,16 @@ from flask import json
 from datetime import datetime
 from urllib.request import urlopen
 import sqlite3
+import requests
+from collections import Counter
+from datetime import datetime
+from flask import jsonify
                                                                                                                                        
 app = Flask(__name__)
+@app.route('/commits/')
+def commits():
+    return render_template('commits.html')
+
 
 @app.route("/contact/")
 def contact():
@@ -22,6 +30,30 @@ def hello_world():
 @app.route("/rapport/")
 def mongraphique():
     return render_template("graphique.html")
+  @app.route('/commits-data/')
+def commits_data():
+    # URL de l'API GitHub
+    url = 'https://api.github.com/repos/OpenRSI/5MCSI_Metriques/commits'
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        commits = response.json()
+        minutes = []
+        
+        for commit in commits:
+            # Extraire les minutes des dates des commits
+            commit_date = commit.get('commit', {}).get('author', {}).get('date')
+            if commit_date:
+                date_object = datetime.strptime(commit_date, '%Y-%m-%dT%H:%M:%SZ')
+                minutes.append(date_object.minute)
+        
+        # Compter les commits par minute
+        minutes_count = Counter(minutes)
+        formatted_data = [{'minute': k, 'count': v} for k, v in minutes_count.items()]
+        
+        return jsonify(results=formatted_data)
+    else:
+        return jsonify({'error': 'Failed to fetch data from GitHub API'}), 500
 
 @app.route('/tawarano/')
 def meteo():
