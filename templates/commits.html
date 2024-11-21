@@ -3,42 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Activité des Commits</title>
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <title>Commits par Minute</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .graph-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
 </head>
 <body>
-    <h1>Activité des Commits (minute par minute)</h1>
-    <div id="chart_div" style="width: 800px; height: 500px;"></div>
-    <script>
-        google.charts.load('current', { packages: ['corechart'] });
-        google.charts.setOnLoadCallback(drawChart);
-
-        function drawChart() {
-            fetch('/commits-data/')
-                .then(response => response.json())
-                .then(data => {
-                    var dataTable = new google.visualization.DataTable();
-                    dataTable.addColumn('string', 'Minute');
-                    dataTable.addColumn('number', 'Commits');
-
-                    data.results.forEach(entry => {
-                        dataTable.addRow([entry.minute.toString(), entry.count]);
-                    });
-
-                    var options = {
-                        title: 'Commits par minute',
-                        hAxis: { title: 'Minutes' },
-                        vAxis: { title: 'Nombre de commits' },
-                        legend: { position: 'none' },
-                        bar: { groupWidth: '75%' },
-                    };
-
-                    var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
-                    chart.draw(dataTable, options);
-                })
-                .catch(error => console.error('Erreur lors du chargement des données:', error));
-        }
-    </script>
+    <h1>Graphique : Nombre de commits par minute</h1>
+    <div class="graph-container">
+        <img src="data:image/png;base64,{{ graph_url }}" alt="Graphique des commits">
+    </div>
 </body>
 </html>
-
