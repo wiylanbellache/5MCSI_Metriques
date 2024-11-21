@@ -20,7 +20,7 @@ def extract_minutes(date_string):
         minutes = date_object.minute
         return jsonify({'minutes': minutes})
   
-@app.route('/commits_graph/')
+@app.route('/commits/')
 def commits_graph():
     return render_template('commits.html')
 
