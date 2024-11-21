@@ -55,6 +55,7 @@ def commits_data():
     else:
         return jsonify({'error': 'Failed to fetch data from GitHub API'}), 500
 
+
 @app.route('/tawarano/')
 def meteo():
     response = urlopen('https://samples.openweathermap.org/data/2.5/forecast?lat=0&lon=0&appid=xxx')
