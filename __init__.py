@@ -1,36 +1,35 @@
-from flask import Flask, render_template_string, render_template, jsonify
-from flask import render_template
-from flask import json
-from datetime import datetime
-from urllib.request import urlopen
-import sqlite3
-import requests
+from flask import Flask, render_template_string, jsonify
+import matplotlib.pyplot as plt
 import json
 from datetime import datetime
+from urllib.request import urlopen
 import io
 import base64
 from collections import Counter
 
-                                                                                                                                       
 app = Flask(__name__)
 
+# Route pour la page d'accueil
+@app.route('/')
+def hello_world():
+    return render_template_string('<h2>Bienvenue sur ma page d\'accueil !</h2>')
+
+# Route pour la page de contact
 @app.route("/contact/")
 def contact():
     return render_template("contact.html")
-# return "<h2>Ma page de contact</h2>"
+
+# Route pour l'histogramme
 @app.route("/histogramme/")
 def histogramme():
     return render_template("histogramme.html")
 
-                                                                                                                                       
-@app.route('/')
-def hello_world():
-    return render_template('hello.html') #Comm2
+# Route pour le graphique
 @app.route("/rapport/")
 def mongraphique():
     return render_template("graphique.html")
-  
 
+# Route pour afficher le graphique des commits
 @app.route('/commits/')
 def commits():
     # URL de l'API GitHub
@@ -88,9 +87,7 @@ def commits():
     </html>
     """, graph_url=graph_url)
 
-if __name__ == "__main__":
-    app.run(debug=True)
-
+# Route pour la météo (pour information, si elle est utilisée)
 @app.route('/tawarano/')
 def meteo():
     response = urlopen('https://samples.openweathermap.org/data/2.5/forecast?lat=0&lon=0&appid=xxx')
@@ -99,9 +96,10 @@ def meteo():
     results = []
     for list_element in json_content.get('list', []):
         dt_value = list_element.get('dt')
-        temp_day_value = list_element.get('main', {}).get('temp') - 273.15 # Conversion de Kelvin en °c 
+        temp_day_value = list_element.get('main', {}).get('temp') - 273.15  # Conversion de Kelvin en °C
         results.append({'Jour': dt_value, 'temp': temp_day_value})
     return jsonify(results=results)
-  
+
+# Point d'entrée de l'application Flask
 if __name__ == "__main__":
-  app.run(debug=True)
+    app.run(debug=True)
